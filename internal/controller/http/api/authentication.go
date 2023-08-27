@@ -55,15 +55,8 @@ func (ar *authRoutes) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := tokenResponse{token}
-
-	json, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (ar *authRoutes) Authenticate(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +84,6 @@ func (ar *authRoutes) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Authorization", "Berear "+token)
+	w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
 }
