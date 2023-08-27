@@ -13,7 +13,7 @@ const UserIDKey ctxKey = "userID"
 func WithJWTAuth(key string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenString, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+			_, tokenString, ok := strings.Cut(r.Header.Get("Authorization"), "Bearer ")
 			if !ok {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
