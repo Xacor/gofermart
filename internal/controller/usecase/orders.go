@@ -77,7 +77,6 @@ func (o *OrderUseCase) PollOrders(ctx context.Context) error {
 	for {
 		select {
 		case <-ticker.C:
-			o.l.Debug("tick")
 			err := o.queryAndUpdate(ctx)
 
 			if err != nil {
@@ -107,7 +106,7 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 	for _, order := range orders {
 		resp, err := o.api.GetOrderAccrual(ctx, order.Number)
 		if err != nil {
-			return fmt.Errorf("api error", err)
+			return fmt.Errorf("api error: %v", err)
 		}
 
 		o.api.AccrualToOrder(resp, &order)

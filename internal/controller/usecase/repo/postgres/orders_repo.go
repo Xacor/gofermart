@@ -79,7 +79,7 @@ func (r *OrderRepo) GetByStatus(ctx context.Context, status []entity.Status) ([]
 // GetByUserID implements usecase.OrderRepo.
 func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) {
 	const sql = `SELECT id, user_id, status, accrual, uploaded_at
-	FROM public.orders
+	FROM orders
 	WHERE user_id = $1;`
 
 	var orders []entity.Order
@@ -94,6 +94,7 @@ func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order
 		if err := rows.Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt); err != nil {
 			return nil, err
 		}
+		orders = append(orders, order)
 	}
 
 	return orders, nil
