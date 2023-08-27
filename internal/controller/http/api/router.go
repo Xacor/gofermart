@@ -15,16 +15,16 @@ func NewRouter(handler chi.Router, l *zap.Logger, auth usecase.Auth, orders usec
 
 	handler.Route("/api/user", func(r chi.Router) {
 		newAuthRoutes(r, auth, l)
-		handler.Route("/orders", func(r chi.Router) {
+		r.Route("/orders", func(r chi.Router) {
 			r.Use(jwt.WithJWTAuth(signKey))
 			newOrdersRoutes(r, orders, l)
 		})
-		handler.Route("/balance", func(r chi.Router) {
+		r.Route("/balance", func(r chi.Router) {
 			r.Use(jwt.WithJWTAuth(signKey))
 			newBalanceRoutes(r, balance, l)
 		})
 
-		handler.Route("/", func(r chi.Router) {
+		r.Route("/", func(r chi.Router) {
 			r.Use(jwt.WithJWTAuth(signKey))
 			newWithdrawalsRoutes(r, withdrawals, l)
 		})
