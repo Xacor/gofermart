@@ -17,9 +17,9 @@ type ordersRoutes struct {
 	l *zap.Logger
 }
 
-func newOrdersRoutes(handler chi.Router, o usecase.Orderer, l *zap.Logger) {
+func newOrdersRoutes(handler chi.Router, o usecase.Orderer, l *zap.Logger, signKey string) {
 	or := &ordersRoutes{o, l}
-
+	handler.Use(jwt.WithJWTAuth(signKey))
 	handler.Route("/orders", func(r chi.Router) {
 		handler.Post("/", or.PostOrder)
 		handler.Get("/", or.GetOrders)

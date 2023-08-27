@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const pollInterval = time.Second * 5
+const pollInterval = time.Second * 3
 
 var (
 	ErrAnothersOrder  = errors.New("another user's order")
@@ -22,11 +22,11 @@ var (
 type OrderUseCase struct {
 	orderRepo   OrderRepo
 	balanceRepo BalanceRepo
-	api         webapi.AccrualsAPI
+	api         *webapi.AccrualsAPI
 	l           *zap.Logger
 }
 
-func NewOrdersUseCase(orderRepo OrderRepo, balanceRepo BalanceRepo, api webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
+func NewOrdersUseCase(orderRepo OrderRepo, balanceRepo BalanceRepo, api *webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
 	usecase := &OrderUseCase{
 		orderRepo:   orderRepo,
 		balanceRepo: balanceRepo,

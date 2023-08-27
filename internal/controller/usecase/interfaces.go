@@ -21,12 +21,11 @@ type (
 	Orderer interface {
 		GetOrders(ctx context.Context, userID int) ([]entity.Order, error)
 		CreateOrder(ctx context.Context, number string, userID int) error
-		PollOrders()
+		PollOrders(ctx context.Context) error
 	}
 
 	OrderRepo interface {
 		Create(ctx context.Context, order entity.Order) error
-		Get(ctx context.Context, order entity.Order) (entity.Order, error)
 		Update(ctx context.Context, order entity.Order) error // также должен обновлять кол-во бонусов
 		GetByOrderID(ctx context.Context, number string) (entity.Order, error)
 		GetByStatus(ctx context.Context, status []entity.Status) ([]entity.Order, error)

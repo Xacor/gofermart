@@ -1,6 +1,7 @@
 package app
 
 import (
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,6 +10,7 @@ import (
 	"github.com/Xacor/gophermart/internal/controller/http/api"
 	"github.com/Xacor/gophermart/internal/controller/usecase"
 	repo "github.com/Xacor/gophermart/internal/controller/usecase/repo/postgres"
+	"github.com/Xacor/gophermart/internal/controller/usecase/webapi"
 	"github.com/Xacor/gophermart/pkg/httpserver"
 	"github.com/Xacor/gophermart/pkg/logger"
 	"github.com/Xacor/gophermart/pkg/postgres"
@@ -28,9 +30,12 @@ func Run(cfg *config.Config) {
 
 	handler := chi.NewMux()
 
-	auth := usecase.NewAuthUseCase(repo.NewUserRepo(pg), cfg.SecretKey)
+	accrualAPI := webapi.NewAccrualsAPI(cfg.AccrualAddress, http.DefaultClient)
 
-	api.NewRouter(handler, l, auth)
+	auth := usecase.NewAuthUseCase(repo.NewUserRepo(pg), cfg.SecretKey)
+	orders := usecase.NewOrdersUseCase(repo.NewOrderRepo(pg), repo.NewBalanceRepo(pg), accrualAPI, l)
+
+	api.NewRouter(handler, l, auth, orders, cfg.SecretKey)
 
 	l.Info("starting HTTP server", zap.String("addr", cfg.Address))
 	httpServer := httpserver.New(handler, httpserver.Address(cfg.Address))

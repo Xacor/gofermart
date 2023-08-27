@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS orders CASCADE;
 CREATE TABLE IF NOT EXISTS orders
 (
     id text,
-    user_id serial,
+    user_id serial NOT NULL,
     status character varying NOT NULL,
     accrual bigint NOT NULL,
     uploaded_at timestamp with time zone NOT NULL,

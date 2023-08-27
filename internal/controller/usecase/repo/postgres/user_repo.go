@@ -17,13 +17,43 @@ func NewUserRepo(pg *postgres.Postgres) *UserRepo {
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) error {
-	const sql = "INSERT INTO users (login, password) VALUES($1,$2);"
-	_, err := r.Pool.Exec(ctx, sql, user.Login, user.Password)
+	const (
+		sqlInsertUser = `INSERT INTO users(
+			login, password) 
+			VALUES($1,$2);`
+
+		sqlInsertBalance = `INSERT INTO balances(
+			current, withdrawn, user_id)
+			VALUES ($1, $2, $3);`
+
+		sqlQueryUser = "SELECT id FROM users WHERE login = $1;"
+	)
+
+	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("cannot create user error: %v", err)
+		return fmt.Errorf("can not begin transaction: %v", err)
 	}
 
-	return nil
+	_, err = tx.Exec(ctx, sqlInsertUser, user.Login, user.Password)
+	if err != nil {
+		tx.Rollback(ctx)
+		return fmt.Errorf("can not create user error: %v", err)
+	}
+
+	var userID int
+	err = tx.QueryRow(ctx, sqlQueryUser, user.Login).Scan(&userID)
+	if err != nil {
+		tx.Rollback(ctx)
+		return fmt.Errorf("can not query user_id: %v", err)
+	}
+
+	_, err = tx.Exec(ctx, sqlInsertBalance, 0, 0, userID)
+	if err != nil {
+		tx.Rollback(ctx)
+		return fmt.Errorf("can not create balance: %v", err)
+	}
+
+	return tx.Commit(ctx)
 }
 func (r *UserRepo) GetByID(ctx context.Context, id int) (entity.User, error) {
 	const sql = "SELECT * FROM users WHERE id = $1;"
