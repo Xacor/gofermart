@@ -16,11 +16,11 @@ func NewRouter(handler chi.Router, l *zap.Logger, auth usecase.Auth) {
 		newAuthRoutes(r, auth, l)
 		// newOrdersRoutes(r, orders, l)
 
-		r.Route("/balance", func(r chi.Router) {
-			r.Get("/", nil)
-			r.Post("/withdraw", nil)
-		})
+		// r.Route("/balance", func(r chi.Router) {
+		// 	r.Get("/", nil)
+		// 	r.Post("/withdraw", nil)
+		// })
 
-		r.Get("/withdrawals", nil)
+		// r.Get("/withdrawals", nil)
 	})
 }
