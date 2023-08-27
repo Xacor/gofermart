@@ -21,6 +21,7 @@ func migrate(dbURI string, l *zap.Logger) {
 		l.Fatal("migrate failed", zap.Error(errors.New("environment variable or flag not declared: DATABASE_URI")))
 	}
 	const sql = `
+BEGIN;
 DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE IF NOT EXISTS users
