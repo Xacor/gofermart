@@ -17,13 +17,10 @@ type ordersRoutes struct {
 	l *zap.Logger
 }
 
-func newOrdersRoutes(handler chi.Router, o usecase.Orderer, l *zap.Logger, signKey string) {
+func newOrdersRoutes(handler chi.Router, o usecase.Orderer, l *zap.Logger) {
 	or := &ordersRoutes{o, l}
-	handler.Route("/orders", func(r chi.Router) {
-		r.Use(jwt.WithJWTAuth(signKey))
-		r.Post("/", or.PostOrder)
-		r.Get("/", or.GetOrders)
-	})
+	handler.Post("/", or.PostOrder)
+	handler.Get("/", or.GetOrders)
 
 }
 

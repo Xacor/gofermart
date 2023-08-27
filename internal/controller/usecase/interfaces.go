@@ -33,13 +33,11 @@ type (
 	}
 
 	Balancer interface {
-		GetUserBalance(ctx context.Context, userID int) entity.Balance
+		GetUserBalance(ctx context.Context, userID int) (entity.Balance, error)
 	}
 
 	BalanceRepo interface {
 		Get(ctx context.Context, userID int) (entity.Balance, error)
-		AddBonuses(ctx context.Context, userID, amount int) error
-		Withdraw(ctx context.Context, userID, amount int) error
 	}
 
 	Withdrawer interface {

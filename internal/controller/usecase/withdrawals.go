@@ -21,8 +21,8 @@ func NewWithdrawUseCase(withdrawalsRepo WithdrawalsRepo, balanceRepo BalanceRepo
 	return &WithdrawUseCase{withdrawalsRepo, balanceRepo, logger}
 }
 
-func (w *WithdrawUseCase) Withdraw(ctx context.Context, withdraw entity.Withdraw, userID int) error {
-	balance, err := w.balanceRepo.Get(ctx, userID)
+func (w *WithdrawUseCase) Withdraw(ctx context.Context, withdraw entity.Withdraw) error {
+	balance, err := w.balanceRepo.Get(ctx, withdraw.UserID)
 	if err != nil {
 		return fmt.Errorf("error get user balance: %v", err)
 	}

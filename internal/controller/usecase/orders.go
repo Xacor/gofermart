@@ -21,18 +21,16 @@ var (
 )
 
 type OrderUseCase struct {
-	orderRepo   OrderRepo
-	balanceRepo BalanceRepo
-	api         *webapi.AccrualsAPI
-	l           *zap.Logger
+	orderRepo OrderRepo
+	api       *webapi.AccrualsAPI
+	l         *zap.Logger
 }
 
-func NewOrdersUseCase(orderRepo OrderRepo, balanceRepo BalanceRepo, api *webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
+func NewOrdersUseCase(orderRepo OrderRepo, api *webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
 	usecase := &OrderUseCase{
-		orderRepo:   orderRepo,
-		balanceRepo: balanceRepo,
-		api:         api,
-		l:           logger,
+		orderRepo: orderRepo,
+		api:       api,
+		l:         logger,
 	}
 	go usecase.PollOrders(context.Background())
 

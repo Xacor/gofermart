@@ -60,13 +60,13 @@ DROP TABLE IF EXISTS balances CASCADE;
 
 CREATE TABLE IF NOT EXISTS balances
 (
-    id serial,
+    user_id serial,
     current bigint,
     withdrawn bigint,
-    user_id serial,
-    PRIMARY KEY (id),
+    PRIMARY KEY (user_id),
     UNIQUE (user_id)
 );
+
 
 ALTER TABLE IF EXISTS orders
     ADD CONSTRAINT "FK_orders_users" FOREIGN KEY (user_id)

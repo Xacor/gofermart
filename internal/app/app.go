@@ -20,8 +20,8 @@ import (
 
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.LogLevel)
-
 	migrate(cfg.DatabaseURI, l)
+
 	pg, err := postgres.New(cfg.DatabaseURI)
 	if err != nil {
 		l.Fatal("failed to init DB", zap.Error(err))
@@ -33,9 +33,11 @@ func Run(cfg *config.Config) {
 	accrualAPI := webapi.NewAccrualsAPI(cfg.AccrualAddress, http.DefaultClient)
 
 	auth := usecase.NewAuthUseCase(repo.NewUserRepo(pg), cfg.SecretKey)
-	orders := usecase.NewOrdersUseCase(repo.NewOrderRepo(pg), repo.NewBalanceRepo(pg), accrualAPI, l)
+	orders := usecase.NewOrdersUseCase(repo.NewOrderRepo(pg), accrualAPI, l)
+	balance := usecase.NewBalanceUseCase(repo.NewBalanceRepo(pg), l)
+	withdrawals := usecase.NewWithdrawUseCase(repo.NewWithdrawalsRepo(pg), repo.NewBalanceRepo(pg), l)
 
-	api.NewRouter(handler, l, auth, orders, cfg.SecretKey)
+	api.NewRouter(handler, l, auth, orders, balance, withdrawals, cfg.SecretKey)
 
 	l.Info("starting HTTP server", zap.String("addr", cfg.Address))
 	httpServer := httpserver.New(handler, httpserver.Address(cfg.Address))
