@@ -2,23 +2,17 @@ package webapi
 
 import (
 	"context"
-	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
-	"net/url"
-	"strconv"
 
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/internal/utils/converter"
-)
-
-const (
-	getOrderPath = "/api/orders/"
+	"github.com/go-resty/resty/v2"
 )
 
 type AccrualsAPI struct {
 	address string
-	client  *http.Client
+	client  *resty.Client
 }
 
 type AccrualResponse struct {
@@ -34,7 +28,7 @@ const (
 	statusProcessed  = "PROCESSED"
 )
 
-func NewAccrualsAPI(addr string, c *http.Client) *AccrualsAPI {
+func NewAccrualsAPI(addr string, c *resty.Client) *AccrualsAPI {
 	return &AccrualsAPI{
 		address: addr,
 		client:  c,
@@ -42,40 +36,26 @@ func NewAccrualsAPI(addr string, c *http.Client) *AccrualsAPI {
 }
 
 func (a *AccrualsAPI) GetOrderAccrual(ctx context.Context, number string) (*AccrualResponse, error) {
-	url, err := a.orderPath(number)
+	var acc AccrualResponse
+	req := a.client.R().
+		SetResult(&acc).
+		SetPathParam("number", number)
+
+	resp, err := req.Get("http://" + a.address + "/api/orders/{number}")
 	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
+		return &AccrualResponse{}, err
 	}
 
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusTooManyRequests {
-		timeout, err := strconv.Atoi(resp.Header.Get("Retry-After"))
-		if err != nil {
-			return nil, err
-		}
-		return nil, NewToManyRequestsError(resp.StatusCode, timeout)
+	if resp.StatusCode() == http.StatusNoContent {
+		return nil, errors.New("no content")
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var accrual AccrualResponse
-	err = json.Unmarshal(body, &accrual)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() == http.StatusTooManyRequests {
+		return nil, errors.New("to many requests")
 	}
 
-	return &accrual, nil
+	return &acc, nil
+
 }
 
 func (a *AccrualsAPI) AccrualToOrder(accrual *AccrualResponse, order *entity.Order) {
@@ -94,8 +74,4 @@ func (a *AccrualsAPI) AccrualToOrder(accrual *AccrualResponse, order *entity.Ord
 		order.Status = entity.Processed
 		order.Accrual = converter.FloatToInt(accrual.Accrual)
 	}
-}
-
-func (a *AccrualsAPI) orderPath(number string) (string, error) {
-	return url.JoinPath(a.address, getOrderPath, number)
 }

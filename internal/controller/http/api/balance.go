@@ -22,8 +22,8 @@ func newBalanceRoutes(r chi.Router, balancer usecase.Balancer, l *zap.Logger) {
 }
 
 type balanceResponse struct {
-	Current   float64 `json:"current,omitempty"`
-	Withdrawn float64 `json:"withdrawn,omitempty"`
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
 }
 
 func (br *balanceRoutes) GetBalance(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +40,8 @@ func (br *balanceRoutes) GetBalance(w http.ResponseWriter, r *http.Request) {
 		Current:   converter.IntToFloat(balance.Current),
 		Withdrawn: converter.IntToFloat(balance.Withdrawn),
 	}
+
+	br.l.Debug("GetBalance", zap.Any("resp", balanceResp))
 
 	body, err := json.Marshal(balanceResp)
 	if err != nil {

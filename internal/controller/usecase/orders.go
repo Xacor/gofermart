@@ -79,10 +79,6 @@ func (o *OrderUseCase) PollOrders(ctx context.Context) error {
 
 			if err != nil {
 				o.l.Error("error update orders status", zap.Error(err))
-				var reqError *webapi.ToManyRequestsError
-				if errors.As(err, &reqError) {
-					<-time.After(time.Duration(reqError.RetryAfter) * time.Second)
-				}
 			}
 
 		case <-ctx.Done():

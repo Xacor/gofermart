@@ -1,10 +1,10 @@
 package app
 
 import (
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Xacor/gophermart/internal/config"
 	"github.com/Xacor/gophermart/internal/controller/http/api"
@@ -15,6 +15,7 @@ import (
 	"github.com/Xacor/gophermart/pkg/logger"
 	"github.com/Xacor/gophermart/pkg/postgres"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +31,12 @@ func Run(cfg *config.Config) {
 
 	handler := chi.NewMux()
 
-	accrualAPI := webapi.NewAccrualsAPI(cfg.AccrualAddress, http.DefaultClient)
+	httpc := resty.New()
+	httpc.SetRetryCount(3).
+		SetRetryWaitTime(2 * time.Second).
+		SetRetryMaxWaitTime(10 * time.Second)
+
+	accrualAPI := webapi.NewAccrualsAPI(cfg.AccrualAddress, httpc)
 
 	auth := usecase.NewAuthUseCase(repo.NewUserRepo(pg), cfg.SecretKey)
 	orders := usecase.NewOrdersUseCase(repo.NewOrderRepo(pg), accrualAPI, l)
