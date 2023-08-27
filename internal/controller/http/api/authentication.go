@@ -91,6 +91,6 @@ func (ar *authRoutes) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Authorization", token)
+	w.Header().Set("Authorization", "Berear "+token)
 	w.WriteHeader(http.StatusOK)
 }
