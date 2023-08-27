@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS orders
 (
     id text,
     user_id serial,
-    status order_status NOT NULL,
+    status character varying NOT NULL,
     accrual bigint NOT NULL,
     uploaded_at timestamp with time zone NOT NULL,
     PRIMARY KEY (id)
