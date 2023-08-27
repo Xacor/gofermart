@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ShiraazMoollatjie/goluhn"
@@ -63,22 +64,28 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 		Status:     entity.New,
 		UploadedAt: time.Now(),
 	}
+
 	return o.orderRepo.Create(ctx, order)
 }
 
 // Полит внешнее api на наличие бонусов по заказу и сохраняет начисления в бд
 func (o *OrderUseCase) PollOrders(ctx context.Context) error {
+	o.l.Debug("polling started")
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
+			o.l.Debug("tick")
 			err := o.queryAndUpdate(ctx)
 
-			var reqError *webapi.ToManyRequestsError
-			if errors.As(err, &reqError) {
-				<-time.After(time.Duration(reqError.RetryAfter) * time.Second)
+			if err != nil {
+				o.l.Error("error update orders status", zap.Error(err))
+				var reqError *webapi.ToManyRequestsError
+				if errors.As(err, &reqError) {
+					<-time.After(time.Duration(reqError.RetryAfter) * time.Second)
+				}
 			}
 
 		case <-ctx.Done():
@@ -100,7 +107,7 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 	for _, order := range orders {
 		resp, err := o.api.GetOrderAccrual(ctx, order.Number)
 		if err != nil {
-			return err
+			return fmt.Errorf("api error", err)
 		}
 
 		o.api.AccrualToOrder(resp, &order)

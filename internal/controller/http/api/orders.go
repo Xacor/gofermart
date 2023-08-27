@@ -19,10 +19,10 @@ type ordersRoutes struct {
 
 func newOrdersRoutes(handler chi.Router, o usecase.Orderer, l *zap.Logger, signKey string) {
 	or := &ordersRoutes{o, l}
-	handler.Use(jwt.WithJWTAuth(signKey))
 	handler.Route("/orders", func(r chi.Router) {
-		handler.Post("/", or.PostOrder)
-		handler.Get("/", or.GetOrders)
+		r.Use(jwt.WithJWTAuth(signKey))
+		r.Post("/", or.PostOrder)
+		r.Get("/", or.GetOrders)
 	})
 
 }
@@ -40,20 +40,24 @@ func (or *ordersRoutes) PostOrder(w http.ResponseWriter, r *http.Request) {
 
 	err = or.o.CreateOrder(r.Context(), number, userID)
 	if err != nil {
-
 		if errors.Is(err, usecase.ErrInvalidLuhn) {
 			or.l.Error("error create order", zap.Error(err), zap.String("number", number))
 			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
 
 		} else if errors.Is(err, usecase.ErrAnothersOrder) {
 			or.l.Error("error create order", zap.Error(err))
 			w.WriteHeader(http.StatusConflict)
+			return
 
 		} else if errors.Is(err, usecase.ErrAlredyUploaded) {
 			or.l.Error("error create order", zap.Error(err))
 			w.WriteHeader(http.StatusOK)
+			return
 
 		}
+		or.l.Error("another error", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

@@ -55,5 +55,5 @@ func (a *AuthUseCase) Authenticate(ctx context.Context, user entity.User) (strin
 		return "", ErrInvalidCredentials
 	}
 
-	return jwt.BuildToken(user, a.secretKey)
+	return jwt.BuildToken(reqUser.ID, a.secretKey)
 }

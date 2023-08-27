@@ -67,7 +67,7 @@ func (r *UserRepo) GetByID(ctx context.Context, id int) (entity.User, error) {
 	return user, nil
 }
 func (r *UserRepo) GetByLogin(ctx context.Context, login string) (entity.User, error) {
-	const sql = "SELECT * FROM users WHERE users.login = $1;"
+	const sql = "SELECT * FROM users WHERE login = $1;"
 
 	var user entity.User
 	err := r.Pool.QueryRow(ctx, sql, login).Scan(&user.ID, &user.Login, &user.Password)

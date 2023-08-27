@@ -3,14 +3,13 @@ package jwt
 import (
 	"testing"
 
-	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBuildtoken(t *testing.T) {
 	type args struct {
-		user entity.User
-		key  string
+		userID int
+		key    string
 	}
 	tests := []struct {
 		name       string
@@ -21,12 +20,8 @@ func TestBuildtoken(t *testing.T) {
 		{
 			name: "TestOK",
 			args: args{
-				user: entity.User{
-					ID:       1,
-					Login:    "TestUser",
-					Password: "$2a$10$qv/Omul7TF2rzhX6PZGZt.Ucg41V/88ew6jSm1oF70REYzvT0KcPm",
-				},
-				key: "secret",
+				userID: 1,
+				key:    "secret",
 			},
 			wantHeader: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
 			assertion:  assert.NoError,
@@ -34,12 +29,8 @@ func TestBuildtoken(t *testing.T) {
 		{
 			name: "TestEmptyKey",
 			args: args{
-				user: entity.User{
-					ID:       1,
-					Login:    "TestUser",
-					Password: "$2a$10$qv/Omul7TF2rzhX6PZGZt.Ucg41V/88ew6jSm1oF70REYzvT0KcPm",
-				},
-				key: "",
+				userID: 1,
+				key:    "",
 			},
 			wantHeader: "",
 			assertion:  assert.Error,
@@ -47,7 +38,7 @@ func TestBuildtoken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := BuildToken(tt.args.user, tt.args.key)
+			got, err := BuildToken(tt.args.userID, tt.args.key)
 			tt.assertion(t, err)
 			assert.Contains(t, got, tt.wantHeader)
 		})

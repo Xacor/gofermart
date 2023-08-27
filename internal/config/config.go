@@ -30,7 +30,7 @@ func (c *Config) parseFlags() {
 	flag.StringVar(&c.Address, "a", ":8181", "run address")
 	flag.StringVar(&c.AccrualAddress, "r", "localhost:8080", "accrual system address")
 	flag.StringVar(&c.DatabaseURI, "d", "", "database connection uri")
-	flag.StringVar(&c.LogLevel, "l", "info", "log level")
+	flag.StringVar(&c.LogLevel, "l", "debug", "log level")
 	flag.StringVar(&c.SecretKey, "k", "secret", "signing key")
 
 	flag.Parse()

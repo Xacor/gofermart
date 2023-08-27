@@ -8,6 +8,10 @@ import (
 
 type ctxKey string
 
+func (ctxKey) String() string {
+	return "ctxKey"
+}
+
 const UserIDKey ctxKey = "userID"
 
 func WithJWTAuth(key string) func(next http.Handler) http.Handler {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -23,16 +22,17 @@ var (
 	ErrTokenExpired  = errors.New("token expired")
 )
 
-func BuildToken(user entity.User, key string) (string, error) {
+func BuildToken(userID int, key string) (string, error) {
 	if len(key) == 0 {
 		return "", ErrEmptySignKey
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExp)),
-		},
-		UserID: user.ID,
-	})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		Claims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExp)),
+			},
+			UserID: userID,
+		})
 
 	tokenString, err := token.SignedString([]byte(key))
 	if err != nil {
