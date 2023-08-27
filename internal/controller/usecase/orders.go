@@ -66,6 +66,7 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 	return o.orderRepo.Create(ctx, order)
 }
 
+// Полит внешнее api на наличие бонусов по заказу и сохраняет начисления в бд
 func (o *OrderUseCase) PollOrders(ctx context.Context) error {
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
@@ -107,7 +108,6 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		o.balanceRepo.AddBonuses(ctx, order.UserID, order.Accrual)
 	}
 
 	return nil

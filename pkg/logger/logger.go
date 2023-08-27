@@ -8,7 +8,7 @@ import (
 )
 
 func New(level string) *zap.Logger {
-	var lvl zap.AtomicLevel
+	lvl := zap.NewAtomicLevel()
 
 	switch strings.ToLower(level) {
 	case "error":

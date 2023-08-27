@@ -52,6 +52,7 @@ func (ar *authRoutes) Register(w http.ResponseWriter, r *http.Request) {
 	token, err := ar.a.Authenticate(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	resp := tokenResponse{token}
@@ -59,6 +60,7 @@ func (ar *authRoutes) Register(w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
@@ -83,16 +85,12 @@ func (ar *authRoutes) Authenticate(w http.ResponseWriter, r *http.Request) {
 	token, err := ar.a.Authenticate(r.Context(), user)
 	if errors.Is(err, usecase.ErrInvalidCredentials) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
-	} else {
+		return
+	} else if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	resp := tokenResponse{token}
-
-	json, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	w.Write(json)
+	w.Header().Add("Authorization", token)
+	w.WriteHeader(http.StatusOK)
 }

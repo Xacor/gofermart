@@ -26,7 +26,7 @@ func migrate(dbURI string, l *zap.Logger) {
 	)
 
 	for attempts > 0 {
-		m, err = gomigrate.New("file://migrations", dbURI)
+		m, err = gomigrate.New("file://migrations/migration.sql", dbURI)
 		if err == nil {
 			break
 		}

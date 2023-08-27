@@ -14,7 +14,7 @@ type (
 
 	UserRepo interface {
 		CreateUser(ctx context.Context, user entity.User) error
-		GetByID(ctx context.Context, id string) (entity.User, error)
+		GetByID(ctx context.Context, id int) (entity.User, error)
 		GetByLogin(ctx context.Context, login string) (entity.User, error)
 	}
 
@@ -30,12 +30,26 @@ type (
 		Update(ctx context.Context, order entity.Order) error // также должен обновлять кол-во бонусов
 		GetByOrderID(ctx context.Context, number string) (entity.Order, error)
 		GetByStatus(ctx context.Context, status []entity.Status) ([]entity.Order, error)
-		GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) // возвращает пустой сдайс и ошиюку, если не найдены записи
+		GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
+	}
+
+	Balancer interface {
+		GetUserBalance(ctx context.Context, userID int) entity.Balance
 	}
 
 	BalanceRepo interface {
 		Get(ctx context.Context, userID int) (entity.Balance, error)
 		AddBonuses(ctx context.Context, userID, amount int) error
 		Withdraw(ctx context.Context, userID, amount int) error
+	}
+
+	Withdrawer interface {
+		Withdraw(ctx context.Context, withdraw entity.Withdraw) error // также должен обновлять кол-во бонусов
+		ListWithdrawals(ctx context.Context, userID int) ([]entity.Withdraw, error)
+	}
+
+	WithdrawalsRepo interface {
+		GetByUserID(ctx context.Context, userID int) ([]entity.Withdraw, error)
+		Create(ctx context.Context, withdraw entity.Withdraw) error
 	}
 )

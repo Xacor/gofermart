@@ -19,7 +19,7 @@ import (
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.LogLevel)
 
-	migrate(cfg.DatabaseURI, l)
+	// migrate(cfg.DatabaseURI, l)
 	pg, err := postgres.New(cfg.DatabaseURI)
 	if err != nil {
 		l.Fatal("failed to init DB", zap.Error(err))
