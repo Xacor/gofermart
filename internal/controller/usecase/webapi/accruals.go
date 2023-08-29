@@ -11,8 +11,7 @@ import (
 )
 
 type AccrualsAPI struct {
-	address string
-	client  *resty.Client
+	client *resty.Client
 }
 
 type AccrualResponse struct {
@@ -30,8 +29,7 @@ const (
 
 func NewAccrualsAPI(addr string, c *resty.Client) *AccrualsAPI {
 	return &AccrualsAPI{
-		address: addr,
-		client:  c,
+		client: c.SetBaseURL("http://" + addr),
 	}
 }
 
@@ -41,7 +39,7 @@ func (a *AccrualsAPI) GetOrderAccrual(ctx context.Context, number string) (*Accr
 		SetResult(&acc).
 		SetPathParam("number", number)
 
-	resp, err := req.Get("http://" + a.address + "/api/orders/{number}")
+	resp, err := req.Get("/api/orders/{number}")
 	if err != nil {
 		return &AccrualResponse{}, err
 	}
