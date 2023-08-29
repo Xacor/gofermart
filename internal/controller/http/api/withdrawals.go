@@ -23,8 +23,9 @@ type withdrawalsRoutes struct {
 
 func newWithdrawalsRoutes(handler chi.Router, withdrawals usecase.Withdrawer, l *zap.Logger) {
 	wr := &withdrawalsRoutes{withdrawals, l}
+	l.Debug("newWithdrawalRoute")
+	handler.Post("/balance/withdraw", http.HandlerFunc(wr.PostWithdraw))
 	handler.Get("/withdrawals", wr.ListWithdrawals)
-	handler.Post("/balance/withdraw", wr.PostWithdraw)
 }
 
 type withdraw struct {
@@ -80,10 +81,13 @@ func (wr *withdrawalsRoutes) PostWithdraw(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	userID := r.Context().Value(jwt.UserIDKey).(int)
 	withdraw := entity.Withdraw{
-		Order: request.Order,
-		Sum:   converter.FloatToInt(request.Sum),
+		UserID: userID,
+		Order:  request.Order,
+		Sum:    converter.FloatToInt(request.Sum),
 	}
+	wr.l.Debug("widraw req", zap.Any("withdraw", withdraw), zap.Int("userID", withdraw.UserID))
 
 	if goluhn.Validate(withdraw.Order) != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)

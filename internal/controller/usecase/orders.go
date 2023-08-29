@@ -68,7 +68,6 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 
 // Полит внешнее api на наличие бонусов по заказу и сохраняет начисления в бд
 func (o *OrderUseCase) PollOrders(ctx context.Context) error {
-	o.l.Debug("polling started")
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
@@ -92,7 +91,6 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	o.l.Debug("orderes to poll", zap.Any("orders", orders))
 
 	if len(orders) == 0 {
 		return nil
@@ -103,7 +101,6 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("api error: %v", err)
 		}
-		o.l.Debug("response", zap.Any("resp", resp))
 
 		o.api.AccrualToOrder(resp, &order)
 		err = o.orderRepo.Update(ctx, order)

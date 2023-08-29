@@ -24,10 +24,18 @@ func NewRouter(handler chi.Router, l *zap.Logger, auth usecase.Auth, orders usec
 			newBalanceRoutes(r, balance, l)
 		})
 
-		r.Route("/", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
 			r.Use(jwt.WithJWTAuth(signKey))
 			newWithdrawalsRoutes(r, withdrawals, l)
 		})
 
 	})
+
+	for i := range handler.Routes() {
+		l.Debug("Route", zap.Any("pattern", handler.Routes()[i].Pattern))
+		for _, v := range handler.Routes()[i].SubRoutes.Routes() {
+			l.Debug("SubRoute", zap.Any("pattern", v.Pattern))
+		}
+
+	}
 }
