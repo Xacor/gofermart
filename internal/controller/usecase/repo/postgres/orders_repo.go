@@ -122,7 +122,7 @@ func (r *OrderRepo) Update(ctx context.Context, order entity.Order) error {
 	}
 
 	var userID int
-	_, err = tx.Query(ctx, sqlUserID, &userID)
+	err = tx.QueryRow(ctx, sqlUserID, order.Number).Scan(&userID)
 	if err != nil {
 		tx.Rollback(ctx)
 		return fmt.Errorf("can not query userID error: %v", err)
