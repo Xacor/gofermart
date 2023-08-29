@@ -29,7 +29,7 @@ const (
 
 func NewAccrualsAPI(addr string, c *resty.Client) *AccrualsAPI {
 	return &AccrualsAPI{
-		client: c.SetBaseURL("http://" + addr),
+		client: c.SetBaseURL(addr),
 	}
 }
 
