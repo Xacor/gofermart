@@ -62,9 +62,8 @@ func (wr *withdrawalsRoutes) ListWithdrawals(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(body)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
 
 func (wr *withdrawalsRoutes) PostWithdraw(w http.ResponseWriter, r *http.Request) {

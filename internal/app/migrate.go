@@ -77,14 +77,6 @@ ALTER TABLE IF EXISTS orders
 
 
 ALTER TABLE IF EXISTS withdrawals
-    ADD CONSTRAINT "FK_withdrawals_orders" FOREIGN KEY (order_id)
-    REFERENCES orders (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS withdrawals
     ADD CONSTRAINT "FK_withdrawals_users" FOREIGN KEY (user_id)
     REFERENCES users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
