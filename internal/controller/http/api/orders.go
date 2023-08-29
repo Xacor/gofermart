@@ -5,8 +5,11 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/Xacor/gophermart/internal/controller/usecase"
+	"github.com/Xacor/gophermart/internal/entity"
+	"github.com/Xacor/gophermart/internal/utils/converter"
 	"github.com/Xacor/gophermart/internal/utils/jwt"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -61,6 +64,14 @@ func (or *ordersRoutes) PostOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
+type orderResp struct {
+	Number     string        `json:"number,omitempty"`
+	UserID     int           `json:"-"`
+	Status     entity.Status `json:"status,omitempty"`
+	Accrual    float64       `json:"accrual,omitempty"`
+	UploadedAt time.Time     `json:"uploaded_at,omitempty"`
+}
+
 func (or *ordersRoutes) GetOrders(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(jwt.UserIDKey).(int)
 	orders, err := or.o.GetOrders(r.Context(), userID)
@@ -75,7 +86,18 @@ func (or *ordersRoutes) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json, err := json.Marshal(orders)
+	var ordersResp []orderResp
+	for _, v := range orders {
+		ordersResp = append(ordersResp, orderResp{
+			Number:     v.Number,
+			UserID:     v.UserID,
+			Status:     v.Status,
+			Accrual:    converter.IntToFloat(v.Accrual),
+			UploadedAt: v.UploadedAt,
+		})
+	}
+
+	json, err := json.Marshal(ordersResp)
 	if err != nil {
 		or.l.Error("error marshling orders", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)

@@ -41,12 +41,14 @@ func (br *balanceRoutes) GetBalance(w http.ResponseWriter, r *http.Request) {
 		Withdrawn: converter.IntToFloat(balance.Withdrawn),
 	}
 
+	br.l.Debug("GetBalance", zap.Any("resp", balanceResp))
+
 	body, err := json.Marshal(balanceResp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	br.l.Debug("GetBalance", zap.Any("resp", body))
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }

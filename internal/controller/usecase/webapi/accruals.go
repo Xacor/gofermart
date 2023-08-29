@@ -53,7 +53,6 @@ func (a *AccrualsAPI) GetOrderAccrual(ctx context.Context, number string) (*Accr
 	}
 
 	return &acc, nil
-
 }
 
 func (a *AccrualsAPI) AccrualToOrder(accrual *AccrualResponse, order *entity.Order) {
