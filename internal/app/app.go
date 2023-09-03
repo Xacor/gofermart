@@ -21,7 +21,7 @@ import (
 
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.LogLevel)
-	migrate(cfg.DatabaseURI, l)
+	postgres.Migrate(cfg.DatabaseURI, l)
 
 	pg, err := postgres.New(cfg.DatabaseURI)
 	if err != nil {

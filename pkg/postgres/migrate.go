@@ -1,11 +1,10 @@
-package app
+package postgres
 
 import (
 	"context"
 	"errors"
 	"time"
 
-	"github.com/Xacor/gophermart/pkg/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.uber.org/zap"
@@ -16,7 +15,7 @@ const (
 	defaultTimeout  = time.Second
 )
 
-func migrate(dbURI string, l *zap.Logger) {
+func Migrate(dbURI string, l *zap.Logger) {
 	if len(dbURI) == 0 {
 		l.Fatal("migrate failed", zap.Error(errors.New("environment variable or flag not declared: DATABASE_URI")))
 	}
@@ -95,12 +94,12 @@ END;`
 	var (
 		attempts = defaultAttempts
 		err      error
-		pg       *postgres.Postgres
+		pg       *Postgres
 	)
 
 	for attempts > 0 {
 		attempts--
-		pg, err = postgres.New(dbURI)
+		pg, err = New(dbURI)
 		if err != nil {
 			l.Error("migrate connection failed", zap.Error(err), zap.Int("postgres is trying to connect, attempts left", attempts))
 			continue

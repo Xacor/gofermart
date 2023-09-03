@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const passwordHashCost = 10
+
 type AuthUseCase struct {
 	repo      UserRepo
 	secretKey string
@@ -27,7 +29,7 @@ func (a *AuthUseCase) Register(ctx context.Context, user entity.User) error {
 		return ErrUserExists
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), passwordHashCost)
 	if err != nil {
 		return err
 	}

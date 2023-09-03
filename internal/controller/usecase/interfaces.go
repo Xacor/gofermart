@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Xacor/gophermart/internal/entity"
+	"github.com/jackc/pgx"
 )
 
 type (
@@ -27,7 +28,7 @@ type (
 	OrderRepo interface {
 		Create(ctx context.Context, order entity.Order) error
 		Update(ctx context.Context, order entity.Order) error // также должен обновлять кол-во бонусов
-		GetByOrderID(ctx context.Context, number string) (entity.Order, error)
+		GetByOrderID(ctx context.Context, number string, tx pgx.Tx) (entity.Order, error)
 		GetByStatus(ctx context.Context, status []entity.Status) ([]entity.Order, error)
 		GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
 	}

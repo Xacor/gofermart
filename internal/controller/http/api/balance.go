@@ -28,7 +28,7 @@ type balanceResponse struct {
 
 func (br *balanceRoutes) GetBalance(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.Context().Value(jwt.UserIDKey).(int)
+	userID := jwt.GetUserIDFromCtx(r.Context())
 	balance, err := br.b.GetUserBalance(r.Context(), userID)
 	if err != nil {
 		br.l.Error("can not query user balance", zap.Error(err))

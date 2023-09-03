@@ -35,7 +35,7 @@ type withdraw struct {
 }
 
 func (wr *withdrawalsRoutes) ListWithdrawals(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(jwt.UserIDKey).(int)
+	userID := jwt.GetUserIDFromCtx(r.Context())
 	withdrawals, err := wr.w.ListWithdrawals(r.Context(), userID)
 	if err != nil {
 		wr.l.Error("list withdrawals handler", zap.Error(err))
@@ -80,7 +80,7 @@ func (wr *withdrawalsRoutes) PostWithdraw(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userID := r.Context().Value(jwt.UserIDKey).(int)
+	userID := jwt.GetUserIDFromCtx(r.Context())
 	withdraw := entity.Withdraw{
 		UserID: userID,
 		Order:  request.Order,

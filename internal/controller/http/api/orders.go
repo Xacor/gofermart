@@ -36,7 +36,7 @@ func (or *ordersRoutes) PostOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := string(body)
-	userID := r.Context().Value(jwt.UserIDKey).(int)
+	userID := jwt.GetUserIDFromCtx(r.Context())
 
 	err = or.o.CreateOrder(r.Context(), number, userID)
 	if err != nil {
@@ -73,7 +73,7 @@ type orderResp struct {
 }
 
 func (or *ordersRoutes) GetOrders(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(jwt.UserIDKey).(int)
+	userID := jwt.GetUserIDFromCtx(r.Context())
 	orders, err := or.o.GetOrders(r.Context(), userID)
 	if err != nil {
 		or.l.Error("error get orders", zap.Error(err))

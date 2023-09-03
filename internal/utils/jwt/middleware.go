@@ -40,3 +40,7 @@ func WithJWTAuth(key string) func(next http.Handler) http.Handler {
 		})
 	}
 }
+
+func GetUserIDFromCtx(ctx context.Context) int {
+	return ctx.Value(UserIDKey).(int)
+}
