@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -38,8 +39,10 @@ func Run(cfg *config.Config) {
 
 	accrualAPI := webapi.NewAccrualsAPI(cfg.AccrualAddress, httpc)
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	auth := usecase.NewAuthUseCase(repo.NewUserRepo(pg), cfg.SecretKey)
-	orders := usecase.NewOrdersUseCase(repo.NewOrderRepo(pg), accrualAPI, l)
+	orders := usecase.NewOrdersUseCase(ctx, repo.NewOrderRepo(pg), accrualAPI, l)
 	balance := usecase.NewBalanceUseCase(repo.NewBalanceRepo(pg), l)
 	withdrawals := usecase.NewWithdrawUseCase(repo.NewWithdrawalsRepo(pg), repo.NewBalanceRepo(pg), l)
 
@@ -53,6 +56,7 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
+		cancel()
 		l.Info("shutting down gracefully", zap.String("signal", s.String()))
 	case err := <-httpServer.Notify():
 		l.Error("httpServer failed to start", zap.Error(err))

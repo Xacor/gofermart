@@ -9,7 +9,9 @@ import (
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/Xacor/gophermart/internal/controller/usecase/webapi"
 	"github.com/Xacor/gophermart/internal/entity"
+	"github.com/Xacor/gophermart/internal/utils/converter"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 const pollInterval = time.Second * 3
@@ -26,13 +28,13 @@ type OrderUseCase struct {
 	l         *zap.Logger
 }
 
-func NewOrdersUseCase(orderRepo OrderRepo, api *webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
+func NewOrdersUseCase(ctx context.Context, orderRepo OrderRepo, api *webapi.AccrualsAPI, logger *zap.Logger) *OrderUseCase {
 	usecase := &OrderUseCase{
 		orderRepo: orderRepo,
 		api:       api,
 		l:         logger,
 	}
-	go usecase.PollOrders(context.Background())
+	go usecase.PollOrders(ctx)
 
 	return usecase
 }
@@ -96,18 +98,51 @@ func (o *OrderUseCase) queryAndUpdate(ctx context.Context) error {
 		return nil
 	}
 
-	for _, order := range orders {
-		resp, err := o.api.GetOrderAccrual(ctx, order.Number)
-		if err != nil {
-			return fmt.Errorf("api error: %v", err)
-		}
+	g, groupCtx := errgroup.WithContext(ctx)
 
-		o.api.AccrualToOrder(resp, &order)
-		err = o.orderRepo.Update(ctx, order)
-		if err != nil {
-			return err
-		}
+	for _, order := range orders {
+		order := order
+
+		g.Go(func() error {
+			resp, err := o.api.GetOrderAccrual(groupCtx, order.Number)
+			if err != nil {
+				return fmt.Errorf("api error: %v", err)
+			}
+
+			accrualToOrder(resp, &order)
+			err = o.orderRepo.Update(groupCtx, order)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 	}
 
-	return nil
+	return g.Wait()
+}
+
+func accrualToOrder(accrual *webapi.AccrualResponse, order *entity.Order) {
+	const (
+		statusRegistered = "REGISTERED"
+		statusInvalid    = "INVALID"
+		statusProcessing = "PROCESSING"
+		statusProcessed  = "PROCESSED"
+	)
+
+	if accrual.Order != order.Number {
+		return
+	}
+
+	switch accrual.Status {
+	case statusRegistered:
+		order.Status = entity.New
+	case statusInvalid:
+		order.Status = entity.Invalid
+	case statusProcessing:
+		order.Status = entity.Processing
+	case statusProcessed:
+		order.Status = entity.Processed
+		order.Accrual = converter.FloatToInt(accrual.Accrual)
+	}
 }

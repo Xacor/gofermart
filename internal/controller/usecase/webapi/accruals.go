@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
+	"time"
 
-	"github.com/Xacor/gophermart/internal/entity"
-	"github.com/Xacor/gophermart/internal/utils/converter"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -20,16 +20,11 @@ type AccrualResponse struct {
 	Accrual float64 `json:"accrual,omitempty"`
 }
 
-const (
-	statusRegistered = "REGISTERED"
-	statusInvalid    = "INVALID"
-	statusProcessing = "PROCESSING"
-	statusProcessed  = "PROCESSED"
-)
-
 func NewAccrualsAPI(addr string, c *resty.Client) *AccrualsAPI {
 	return &AccrualsAPI{
-		client: c.SetBaseURL(addr),
+		client: c.SetBaseURL(addr).
+			SetRetryAfter(retryOnToManyRequests).
+			AddRetryCondition(toManyRequestCond),
 	}
 }
 
@@ -55,20 +50,19 @@ func (a *AccrualsAPI) GetOrderAccrual(ctx context.Context, number string) (*Accr
 	return &acc, nil
 }
 
-func (a *AccrualsAPI) AccrualToOrder(accrual *AccrualResponse, order *entity.Order) {
-	if accrual.Order != order.Number {
-		return
+func retryOnToManyRequests(c *resty.Client, r *resty.Response) (time.Duration, error) {
+	// обработка по дефолтной схеме
+	if r.StatusCode() != http.StatusTooManyRequests {
+		return 0, nil
 	}
 
-	switch accrual.Status {
-	case statusRegistered:
-		order.Status = entity.New
-	case statusInvalid:
-		order.Status = entity.Invalid
-	case statusProcessing:
-		order.Status = entity.Processing
-	case statusProcessed:
-		order.Status = entity.Processed
-		order.Accrual = converter.FloatToInt(accrual.Accrual)
+	timeout, err := strconv.Atoi(r.Header().Get("Retry-After"))
+	if err != nil {
+		return 0, err
 	}
+	return time.Second * time.Duration(timeout), nil
+}
+
+func toManyRequestCond(r *resty.Response, err error) bool {
+	return r.StatusCode() == http.StatusTooManyRequests
 }

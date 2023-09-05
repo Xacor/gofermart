@@ -4,16 +4,24 @@ import (
 	"context"
 
 	"github.com/Xacor/gophermart/internal/entity"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
+// TODO: везде в repo передавать транзакции как аргумент
 type (
+	Txer interface {
+		Begin(ctx context.Context) (pgx.Tx, error)
+		Commit(ctx context.Context, tx pgx.Tx) error
+		Rollback(ctx context.Context, tx pgx.Tx) error
+	}
+
 	Auth interface {
 		Register(ctx context.Context, user entity.User) error
 		Authenticate(ctx context.Context, user entity.User) (string, error)
 	}
 
 	UserRepo interface {
+		Txer
 		CreateUser(ctx context.Context, user entity.User) error
 		GetByID(ctx context.Context, id int) (entity.User, error)
 		GetByLogin(ctx context.Context, login string) (entity.User, error)
@@ -26,9 +34,10 @@ type (
 	}
 
 	OrderRepo interface {
+		Txer
 		Create(ctx context.Context, order entity.Order) error
 		Update(ctx context.Context, order entity.Order) error // также должен обновлять кол-во бонусов
-		GetByOrderID(ctx context.Context, number string, tx pgx.Tx) (entity.Order, error)
+		GetByOrderID(ctx context.Context, number string) (entity.Order, error)
 		GetByStatus(ctx context.Context, status []entity.Status) ([]entity.Order, error)
 		GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
 	}
@@ -38,6 +47,7 @@ type (
 	}
 
 	BalanceRepo interface {
+		Txer
 		Get(ctx context.Context, userID int) (entity.Balance, error)
 	}
 
@@ -47,6 +57,7 @@ type (
 	}
 
 	WithdrawalsRepo interface {
+		Txer
 		GetByUserID(ctx context.Context, userID int) ([]entity.Withdraw, error)
 		Create(ctx context.Context, withdraw entity.Withdraw) error
 	}

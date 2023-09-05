@@ -6,10 +6,23 @@ import (
 
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/pkg/postgres"
+	pgx "github.com/jackc/pgx/v5"
 )
 
 type UserRepo struct {
 	*postgres.Postgres
+}
+
+func (r *UserRepo) Begin(ctx context.Context) (pgx.Tx, error) {
+	return r.Pool.Begin(ctx)
+}
+
+func (*UserRepo) Commit(ctx context.Context, tx pgx.Tx) error {
+	return tx.Commit(ctx)
+}
+
+func (*UserRepo) Rollback(ctx context.Context, tx pgx.Tx) error {
+	return tx.Rollback(ctx)
 }
 
 func NewUserRepo(pg *postgres.Postgres) *UserRepo {

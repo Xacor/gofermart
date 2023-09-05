@@ -23,23 +23,25 @@ func NewAuthUseCase(repo UserRepo, secretKey string) *AuthUseCase {
 
 var ErrUserExists = errors.New("user exists")
 
-func (a *AuthUseCase) Register(ctx context.Context, user entity.User) error {
+func (a *AuthUseCase) Register(ctx context.Context, user entity.User) (string, error) {
 	_, err := a.repo.GetByLogin(ctx, user.Login)
 	if err == nil {
-		return ErrUserExists
+		return "", ErrUserExists
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), passwordHashCost)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	user.Password = string(hash)
 	if err = a.repo.CreateUser(ctx, user); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	createdUser, err := a.repo.GetByLogin(ctx, user.Login)
+
+	return jwt.BuildToken(createdUser.ID, a.secretKey)
 }
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
