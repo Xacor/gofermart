@@ -57,7 +57,7 @@ func (r *OrderRepo) Create(ctx context.Context, order entity.Order, tx pgx.Tx) e
 }
 
 // GetByOrderID implements usecase.OrderRepo.
-func (r *OrderRepo) GetByOrderID(ctx context.Context, number string) (entity.Order, error) {
+func (r *OrderRepo) GetByOrderID(ctx context.Context, number string, tx pgx.Tx) (entity.Order, error) {
 	const sql = `SELECT id, user_id, status, accrual, uploaded_at
 	FROM public.orders
 	WHERE id = $1;`
@@ -65,7 +65,7 @@ func (r *OrderRepo) GetByOrderID(ctx context.Context, number string) (entity.Ord
 	var err error
 
 	var order entity.Order
-	err = r.Pool.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
+	err = tx.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
 	if err != nil {
 		return entity.Order{}, err
 	}
