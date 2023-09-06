@@ -50,8 +50,14 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 		return ErrInvalidLuhn // 422
 	}
 
-	uploaded, err := o.orderRepo.GetByOrderID(ctx, number)
+	tx, err := o.orderRepo.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	uploaded, err := o.orderRepo.GetByOrderID(ctx, number, tx)
 	if err == nil {
+		tx.Rollback(ctx)
 		if uploaded.UserID == userID {
 			return ErrAlredyUploaded // 200
 		} else {
@@ -68,7 +74,13 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 		UploadedAt: time.Now(),
 	}
 
-	return o.orderRepo.Create(ctx, order)
+	err = o.orderRepo.Create(ctx, order, tx)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 // Полит внешнее api на наличие бонусов по заказу и сохраняет начисления в бд

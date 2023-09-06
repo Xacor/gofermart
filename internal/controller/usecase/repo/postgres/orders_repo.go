@@ -8,6 +8,7 @@ import (
 
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/pkg/postgres"
+	pgx "github.com/jackc/pgx/v5"
 )
 
 var (
@@ -18,19 +19,36 @@ type OrderRepo struct {
 	*postgres.Postgres
 }
 
+// Begin implements usecase.OrderRepo.
+func (r *OrderRepo) Begin(ctx context.Context) (pgx.Tx, error) {
+	return r.Pool.Begin(ctx)
+}
+
+// Commit implements usecase.OrderRepo.
+func (r *OrderRepo) Commit(ctx context.Context, tx pgx.Tx) error {
+	return tx.Commit(ctx)
+}
+
+// Rollback implements usecase.OrderRepo.
+func (r *OrderRepo) Rollback(ctx context.Context, tx pgx.Tx) error {
+	return tx.Rollback(ctx)
+}
+
 func NewOrderRepo(pg *postgres.Postgres) *OrderRepo {
 	return &OrderRepo{pg}
 }
 
 // Create implements usecase.OrderRepo.
-func (r *OrderRepo) Create(ctx context.Context, order entity.Order) error {
+func (r *OrderRepo) Create(ctx context.Context, order entity.Order, tx pgx.Tx) error {
 	const sql = `INSERT INTO public.orders(
 	id, user_id, status, accrual, uploaded_at)
 	VALUES ($1, $2, $3, $4, $5);`
 
 	order.UploadedAt = time.Now()
 
-	_, err := r.Pool.Exec(ctx, sql, order.Number, order.UserID, order.Status, order.Accrual, order.UploadedAt)
+	var err error
+
+	_, err = tx.Exec(ctx, sql, order.Number, order.UserID, order.Status, order.Accrual, order.UploadedAt)
 	if err != nil {
 		return fmt.Errorf("cannot create order error: %v", err)
 	}
@@ -45,6 +63,7 @@ func (r *OrderRepo) GetByOrderID(ctx context.Context, number string) (entity.Ord
 	WHERE id = $1;`
 
 	var err error
+
 	var order entity.Order
 	err = r.Pool.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
 	if err != nil {

@@ -21,7 +21,6 @@ type (
 	}
 
 	UserRepo interface {
-		Txer
 		CreateUser(ctx context.Context, user entity.User) error
 		GetByID(ctx context.Context, id int) (entity.User, error)
 		GetByLogin(ctx context.Context, login string) (entity.User, error)
@@ -35,9 +34,9 @@ type (
 
 	OrderRepo interface {
 		Txer
-		Create(ctx context.Context, order entity.Order) error
+		Create(ctx context.Context, order entity.Order, tx pgx.Tx) error
 		Update(ctx context.Context, order entity.Order) error // также должен обновлять кол-во бонусов
-		GetByOrderID(ctx context.Context, number string) (entity.Order, error)
+		GetByOrderID(ctx context.Context, number string, tx pgx.Tx) (entity.Order, error)
 		GetByStatus(ctx context.Context, status []entity.Status) ([]entity.Order, error)
 		GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
 	}
@@ -47,7 +46,6 @@ type (
 	}
 
 	BalanceRepo interface {
-		Txer
 		Get(ctx context.Context, userID int) (entity.Balance, error)
 	}
 
@@ -57,7 +55,6 @@ type (
 	}
 
 	WithdrawalsRepo interface {
-		Txer
 		GetByUserID(ctx context.Context, userID int) ([]entity.Withdraw, error)
 		Create(ctx context.Context, withdraw entity.Withdraw) error
 	}
