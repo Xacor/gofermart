@@ -56,7 +56,6 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		cancel()
 		l.Info("shutting down gracefully", zap.String("signal", s.String()))
 	case err := <-httpServer.Notify():
 		l.Error("httpServer failed to start", zap.Error(err))
@@ -65,4 +64,5 @@ func Run(cfg *config.Config) {
 	if err := httpServer.Shutdown(); err != nil {
 		l.Error("failed to shutdown httpServer", zap.Error(err))
 	}
+	cancel()
 }

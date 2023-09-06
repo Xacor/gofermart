@@ -24,10 +24,6 @@ func newAuthRoutes(handler chi.Router, a usecase.Auth, l *zap.Logger) {
 	handler.Post("/login", r.Authenticate)
 }
 
-type tokenResponse struct {
-	Token string `json:"token"`
-}
-
 func (ar *authRoutes) Register(w http.ResponseWriter, r *http.Request) {
 	var (
 		user entity.User

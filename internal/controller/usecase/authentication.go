@@ -40,6 +40,9 @@ func (a *AuthUseCase) Register(ctx context.Context, user entity.User) (string, e
 	}
 
 	createdUser, err := a.repo.GetByLogin(ctx, user.Login)
+	if err != nil {
+		return "", err
+	}
 
 	return jwt.BuildToken(createdUser.ID, a.secretKey)
 }
