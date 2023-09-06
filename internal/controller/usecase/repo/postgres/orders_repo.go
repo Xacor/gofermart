@@ -24,14 +24,16 @@ func NewOrderRepo(pg *postgres.Postgres) *OrderRepo {
 }
 
 // Create implements usecase.OrderRepo.
-func (r *OrderRepo) Create(ctx context.Context, order entity.Order) error {
+func (r *OrderRepo) Create(ctx context.Context, order entity.Order, tx pgx.Tx) error {
 	const sql = `INSERT INTO public.orders(
 	id, user_id, status, accrual, uploaded_at)
 	VALUES ($1, $2, $3, $4, $5);`
 
 	order.UploadedAt = time.Now()
 
-	_, err := r.Pool.Exec(ctx, sql, order.Number, order.UserID, order.Status, order.Accrual, order.UploadedAt)
+	var err error
+
+	_, err = tx.Exec(ctx, sql, order.Number, order.UserID, order.Status, order.Accrual, order.UploadedAt)
 	if err != nil {
 		return fmt.Errorf("cannot create order error: %v", err)
 	}
@@ -46,21 +48,14 @@ func (r *OrderRepo) GetByOrderID(ctx context.Context, number string, tx pgx.Tx) 
 	WHERE id = $1;`
 
 	var err error
-	if tx == nil {
-		tx, err = r.Pool.Begin(ctx)
-		if err != nil {
-			return entity.Order{}, err
-		}
-	}
 
 	var order entity.Order
 	err = tx.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
 	if err != nil {
-		tx.Rollback(ctx)
 		return entity.Order{}, err
 	}
 
-	return order, tx.Commit(ctx)
+	return order, nil
 }
 
 // GetByStatus implements usecase.OrderRepo.
