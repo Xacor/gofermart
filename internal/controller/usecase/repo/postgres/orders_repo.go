@@ -8,7 +8,6 @@ import (
 
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/pkg/postgres"
-	"github.com/jackc/pgx/v5"
 )
 
 var (
@@ -40,27 +39,19 @@ func (r *OrderRepo) Create(ctx context.Context, order entity.Order) error {
 }
 
 // GetByOrderID implements usecase.OrderRepo.
-func (r *OrderRepo) GetByOrderID(ctx context.Context, number string, tx pgx.Tx) (entity.Order, error) {
+func (r *OrderRepo) GetByOrderID(ctx context.Context, number string) (entity.Order, error) {
 	const sql = `SELECT id, user_id, status, accrual, uploaded_at
 	FROM public.orders
 	WHERE id = $1;`
 
 	var err error
-	if tx == nil {
-		tx, err = r.Pool.Begin(ctx)
-		if err != nil {
-			return entity.Order{}, err
-		}
-	}
-
 	var order entity.Order
-	err = tx.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
+	err = r.Pool.QueryRow(ctx, sql, number).Scan(&order.Number, &order.UserID, &order.Status, &order.Accrual, &order.UploadedAt)
 	if err != nil {
-		tx.Rollback(ctx)
 		return entity.Order{}, err
 	}
 
-	return order, tx.Commit(ctx)
+	return order, nil
 }
 
 // GetByStatus implements usecase.OrderRepo.

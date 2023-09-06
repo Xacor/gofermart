@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/Xacor/gophermart/internal/controller/usecase"
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/internal/utils/converter"
@@ -88,15 +87,14 @@ func (wr *withdrawalsRoutes) PostWithdraw(w http.ResponseWriter, r *http.Request
 	}
 	wr.l.Debug("widraw req", zap.Any("withdraw", withdraw), zap.Int("userID", withdraw.UserID))
 
-	if goluhn.Validate(withdraw.Order) != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return
-	}
-
 	err = wr.w.Withdraw(r.Context(), withdraw)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInsufficientBalance) {
 			w.WriteHeader(http.StatusPaymentRequired)
+			return
+		}
+		if errors.Is(err, usecase.ErrInvalidLuhn) {
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 

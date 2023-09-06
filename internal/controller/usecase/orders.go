@@ -10,6 +10,7 @@ import (
 	"github.com/Xacor/gophermart/internal/controller/usecase/webapi"
 	"github.com/Xacor/gophermart/internal/entity"
 	"github.com/Xacor/gophermart/internal/utils/converter"
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -56,6 +57,8 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, number string, userID in
 		} else {
 			return ErrAnothersOrder //409
 		}
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return err
 	}
 
 	order := entity.Order{

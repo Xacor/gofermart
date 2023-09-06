@@ -46,16 +46,10 @@ func (ar *authRoutes) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := ar.a.Register(r.Context(), user)
+	token, err := ar.a.Register(r.Context(), user)
 	if errors.Is(err, usecase.ErrUserExists) {
 		ar.l.Error("can not register user", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusConflict)
-		return
-	}
-	token, err := ar.a.Authenticate(r.Context(), user)
-	if err != nil {
-		ar.l.Error("can not authenticate user", zap.Error(err))
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

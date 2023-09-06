@@ -16,7 +16,7 @@ type (
 	}
 
 	Auth interface {
-		Register(ctx context.Context, user entity.User) error
+		Register(ctx context.Context, user entity.User) (string, error)
 		Authenticate(ctx context.Context, user entity.User) (string, error)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/Xacor/gophermart/internal/entity"
 	"go.uber.org/zap"
 )
@@ -22,7 +23,9 @@ func NewWithdrawUseCase(withdrawalsRepo WithdrawalsRepo, balanceRepo BalanceRepo
 }
 
 func (w *WithdrawUseCase) Withdraw(ctx context.Context, withdraw entity.Withdraw) error {
-	w.l.Debug("usecase", zap.Int("userID", withdraw.UserID))
+	if err := goluhn.Validate(withdraw.Order); err != nil {
+		return ErrInvalidLuhn
+	}
 	balance, err := w.balanceRepo.Get(ctx, withdraw.UserID)
 	if err != nil {
 		return fmt.Errorf("error get user balance: %v", err)
