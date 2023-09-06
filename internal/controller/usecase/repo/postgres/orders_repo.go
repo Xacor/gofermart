@@ -19,6 +19,21 @@ type OrderRepo struct {
 	*postgres.Postgres
 }
 
+// Begin implements usecase.OrderRepo.
+func (r *OrderRepo) Begin(ctx context.Context) (pgx.Tx, error) {
+	return r.Pool.Begin(ctx)
+}
+
+// Commit implements usecase.OrderRepo.
+func (r *OrderRepo) Commit(ctx context.Context, tx pgx.Tx) error {
+	return tx.Commit(ctx)
+}
+
+// Rollback implements usecase.OrderRepo.
+func (r *OrderRepo) Rollback(ctx context.Context, tx pgx.Tx) error {
+	return tx.Rollback(ctx)
+}
+
 func NewOrderRepo(pg *postgres.Postgres) *OrderRepo {
 	return &OrderRepo{pg}
 }
